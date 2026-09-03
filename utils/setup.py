@@ -31,6 +31,7 @@ from utils.service_postgres import (
     validate_infinidysk_postgres_release_version,
     validate_infinidysk_postgres_source_selection,
 )
+from utils.riven_patches import apply_riven_patches
 from utils.zilean_dotnet import prepare_zilean_for_net10
 from utils.mediastorm_installer import (
     MEDIASTORM_OCI_REFERENCE,
@@ -2036,6 +2037,11 @@ def additional_setup(process_handler, process_name, config, key):
         success, error = vite_modifications(config["config_dir"])
         if not success:
             return False, f"Failed to make vite modifications: {error}"
+
+    if key == "riven_backend":
+        success, error = apply_riven_patches(config["config_dir"])
+        if not success:
+            return False, f"Failed to apply the traktless Riven patches: {error}"
 
     if key == "infinidysk":
         success, error = setup_nzbdav_build(process_handler, config)
