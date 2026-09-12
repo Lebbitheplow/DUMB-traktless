@@ -37,6 +37,7 @@ UI_SERVICE_DEFS = [
     {"name": "bazarr", "config_key": "bazarr"},
     {"name": "neutarr", "config_key": "neutarr"},
     {"name": "seerr", "config_key": "seerr"},
+    {"name": "diskovarr", "config_key": "diskovarr"},
     {"name": "profilarr", "config_key": "profilarr"},
     {"name": "pulsarr", "config_key": "pulsarr"},
     {"name": "maintainerr", "config_key": "maintainerr"},
@@ -250,6 +251,34 @@ def _ensure_traefik_tree_accessible(*paths: str) -> None:
                     logger.debug("Skipping ownership update for %s: %s", item, exc)
 
 
+def _resolve_external_ui_service(
+    service_def: Dict[str, Any], cfg: Dict[str, Any]
+) -> List[Dict[str, Any]]:
+    """Expose an externally hosted service (configured by URL) as a UI link."""
+    if not isinstance(cfg, dict) or not cfg.get("enabled"):
+        return []
+    url = str(cfg.get("url") or "").strip()
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return []
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    return [
+        {
+            "name": service_def["name"],
+            "process_name": service_def["name"].title(),
+            "config_key": service_def["config_key"],
+            "host": parsed.hostname,
+            "port": port,
+            "path": service_def.get("path", ""),
+            "path_prefix": service_def.get("path_prefix", ""),
+            "internal_service": service_def.get("internal_service"),
+            "direct_url": url.rstrip("/") + "/",
+            "direct_url_locked": True,
+            "external": True,
+        }
+    ]
+
+
 def _resolve_ui_service(service_def: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Resolve service definition to actual services. Returns a list to support multiple instances."""
     config_key = service_def["config_key"]
@@ -280,6 +309,9 @@ def _resolve_ui_service(service_def: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "internal_service": internal_service,
             }
         ]
+
+    if config_key == "diskovarr":
+        return _resolve_external_ui_service(service_def, config.get("diskovarr", {}))
 
     if config_key == "dumb" and subkey:
         cfg = config.get("dumb", {}).get(subkey, {})

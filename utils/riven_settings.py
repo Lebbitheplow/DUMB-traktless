@@ -1,6 +1,7 @@
 from utils.global_logger import logger
 from utils.config_loader import CONFIG_MANAGER
 from utils.core_services import has_core_service
+from utils.diskovarr_settings import riven_bridge_env
 from json import load, dump, JSONDecodeError
 import os, time, re, requests, urllib.parse
 
@@ -234,6 +235,8 @@ def set_env_variables():
         "RIVEN_DATABASE_URL": f"postgres://{postgres_user}:{postgres_password}@{postgres_config.get('host')}:{postgres_port}/riven",
         "RIVEN_DATABASE_HOST": f"postgresql+psycopg2://{postgres_user}:{postgres_password}@{postgres_config.get('host')}:{postgres_port}/riven",
     }
+    # Point Riven's Overseerr content source at Diskovarr's request bridge.
+    env_vars.update(riven_bridge_env())
 
     default_env_vars = {}
 

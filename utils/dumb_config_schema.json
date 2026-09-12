@@ -2726,6 +2726,53 @@
         "options"
       ]
     },
+    "diskovarr": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "url": {
+          "type": "string"
+        },
+        "api_key": {
+          "type": "string"
+        },
+        "admin_password": {
+          "type": "string"
+        },
+        "request_mode": {
+          "type": "string",
+          "enum": [
+            "pull",
+            "push"
+          ]
+        },
+        "riven_url": {
+          "type": "string"
+        },
+        "configure_riven": {
+          "type": "boolean"
+        },
+        "configure_connections": {
+          "type": "boolean"
+        },
+        "riven_bridge_key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "url",
+        "api_key",
+        "admin_password",
+        "request_mode",
+        "riven_url",
+        "configure_riven",
+        "configure_connections",
+        "riven_bridge_key"
+      ]
+    },
     "profilarr": {
       "type": "object",
       "properties": {
@@ -5404,6 +5451,7 @@
     "altmount",
     "neutarr",
     "seerr_sync",
+    "diskovarr",
     "profilarr",
     "seerr",
     "postgres",

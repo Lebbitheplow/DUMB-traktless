@@ -259,6 +259,47 @@ class TraefikSetupHelperTests(unittest.TestCase):
             ["authelia_strip", "authelia_public_origin", "ui_frame_headers"],
         )
 
+    def test_build_ui_services_exposes_external_diskovarr_by_url(self):
+        traefik_setup.CONFIG_MANAGER.config = {
+            "diskovarr": {"enabled": True, "url": "http://diskovarr.lan:3232/"}
+        }
+
+        services = traefik_setup.build_ui_services()
+
+        diskovarr = next(
+            service for service in services if service["config_key"] == "diskovarr"
+        )
+        self.assertEqual(diskovarr["name"], "diskovarr")
+        self.assertEqual(diskovarr["host"], "diskovarr.lan")
+        self.assertEqual(diskovarr["port"], 3232)
+        self.assertEqual(diskovarr["direct_url"], "http://diskovarr.lan:3232/")
+        self.assertTrue(diskovarr["direct_url_locked"])
+        self.assertTrue(diskovarr["external"])
+
+    def test_build_ui_services_skips_disabled_or_invalid_diskovarr(self):
+        traefik_setup.CONFIG_MANAGER.config = {
+            "diskovarr": {"enabled": False, "url": "http://diskovarr.lan:3232"}
+        }
+        self.assertEqual(
+            [],
+            [
+                s
+                for s in traefik_setup.build_ui_services()
+                if s["config_key"] == "diskovarr"
+            ],
+        )
+        traefik_setup.CONFIG_MANAGER.config = {
+            "diskovarr": {"enabled": True, "url": "not a url"}
+        }
+        self.assertEqual(
+            [],
+            [
+                s
+                for s in traefik_setup.build_ui_services()
+                if s["config_key"] == "diskovarr"
+            ],
+        )
+
     def test_authelia_embedded_route_ignores_unsafe_public_origin(self):
         generated = traefik_setup.generate_traefik_config(
             [

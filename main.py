@@ -18,6 +18,7 @@ from utils.plex_dbrepair import start_plex_dbrepair_worker
 from utils.ffprobe_monitor import start_ffprobe_monitor
 from utils.setup import setup_project
 from utils.seerr_sync import start_seerr_sync_service
+from utils.diskovarr_settings import prepare_riven_bridge, start_diskovarr_wiring
 from utils.arr_postgres import configure_arr_postgres_runtime
 from utils.service_postgres import configure_service_postgres_runtime
 from utils.postgres import stop_existing_postgres_for_data_directory
@@ -1000,6 +1001,7 @@ def main():
     _apply_prowlarr_waits(config, _collect_arr_ping_waits(config))
     _apply_waits_to_service(config, "tautulli", _build_plex_wait_entries(config))
     _apply_waits_to_service(config, "seerr", _build_media_wait_entries(config))
+    prepare_riven_bridge()
     if configure_arr_postgres_runtime(config):
         config.save_config()
     if configure_service_postgres_runtime(config, allow_offline_authorization=True):
@@ -1177,6 +1179,8 @@ def main():
 
     if config.get("seerr_sync", {}).get("enabled"):
         start_seerr_sync_service()
+
+    start_diskovarr_wiring()
 
     threading.Event().wait()
 

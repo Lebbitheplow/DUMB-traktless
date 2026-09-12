@@ -171,7 +171,12 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=shared \
 ####################################################################################################################################################
 FROM base AS dumb-frontend-builder
 ARG DUMB_FRONTEND_TAG
-RUN curl -L https://github.com/nicocapalbo/dmbdb/archive/refs/tags/${DUMB_FRONTEND_TAG}.zip -o dumb-frontend.zip && \
+# Override these to build the dashboard from a fork or branch instead of an
+# upstream release, e.g. DUMB_FRONTEND_REPO=Lebbitheplow/dmbdb
+# DUMB_FRONTEND_REF=refs/heads/traktless.
+ARG DUMB_FRONTEND_REPO=nicocapalbo/dmbdb
+ARG DUMB_FRONTEND_REF=refs/tags/${DUMB_FRONTEND_TAG}
+RUN curl -L https://github.com/${DUMB_FRONTEND_REPO}/archive/${DUMB_FRONTEND_REF}.zip -o dumb-frontend.zip && \
     unzip dumb-frontend.zip && mkdir -p /dumb/frontend && mv dmbdb*/* /dumb/frontend && rm dumb-frontend.zip
 WORKDIR /dumb/frontend
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \

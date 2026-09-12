@@ -1155,6 +1155,14 @@ async def update_config(
         except Exception as exc:
             logger.warning("Seerr sync start after config update skipped: %s", exc)
 
+    if "diskovarr" in updates:
+        try:
+            from utils.diskovarr_settings import start_diskovarr_wiring
+
+            start_diskovarr_wiring(reason="config_update", delay_s=0)
+        except Exception as exc:
+            logger.warning("Diskovarr wiring after config update skipped: %s", exc)
+
     return {"status": "global config updated", "keys": list(updates.keys())}
 
 

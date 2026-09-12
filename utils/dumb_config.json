@@ -980,6 +980,17 @@
       "retry_failed_after_hours": 24
     }
   },
+  "diskovarr": {
+    "enabled": false,
+    "url": "http://127.0.0.1:3232",
+    "api_key": "",
+    "admin_password": "",
+    "request_mode": "pull",
+    "riven_url": "",
+    "configure_riven": true,
+    "configure_connections": true,
+    "riven_bridge_key": ""
+  },
   "profilarr": {
     "instances": {
       "Default": {

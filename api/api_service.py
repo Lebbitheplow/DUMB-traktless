@@ -28,6 +28,7 @@ from api.routers.websocket_metrics import websocket_metrics_router
 from api.routers.websocket_status import websocket_status_router
 from api.routers.auth import auth_router
 from api.routers.seerr_sync import seerr_sync_router
+from api.routers.diskovarr import diskovarr_router
 from api.routers.ai import ai_router
 from api.routers.notifications import notifications_router
 from api.routers.authelia import authelia_router
@@ -187,6 +188,7 @@ def create_app() -> FastAPI:
     app.include_router(logs_router, prefix="/logs", tags=["Logs"])
     app.include_router(metrics_router, prefix="/metrics", tags=["Metrics"])
     app.include_router(seerr_sync_router, prefix="/seerr-sync", tags=["Seerr Sync"])
+    app.include_router(diskovarr_router, prefix="/diskovarr", tags=["Diskovarr"])
     app.include_router(ai_router, prefix="/ai", tags=["AI Assistant"])
     app.include_router(
         notifications_router, prefix="/notifications", tags=["Notifications"]
