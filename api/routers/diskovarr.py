@@ -2,11 +2,13 @@
 Diskovarr API Router - status, connection test and wiring for Diskovarr.
 """
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from utils.dependencies import get_optional_current_user
 from utils.global_logger import logger
-from utils import diskovarr_settings
+from utils import diskovarr_provision, diskovarr_settings
 
 diskovarr_router = APIRouter()
 
@@ -87,3 +89,63 @@ def get_diskovarr_sync(
 ):
     """Outcome of the most recent wiring pass."""
     return diskovarr_settings.get_last_sync()
+
+
+# -- guided setup (Diskovarr Admin -> Setup wizard) ----------------------------
+
+
+class ProvisionRequest(BaseModel):
+    debrid: dict
+    diskovarr: dict
+    services: list[str] = []
+    tmdb_api_key: str = ""
+    plex: Optional[dict] = None
+    library_path: str = ""
+
+
+@diskovarr_router.get("/provision/capabilities")
+def get_provision_capabilities(
+    current_user: str = Depends(get_optional_current_user),
+):
+    """Providers, installable services and their live state, plus the last job."""
+    return diskovarr_provision.capabilities()
+
+
+@diskovarr_router.post("/provision")
+def start_provision(
+    payload: ProvisionRequest,
+    current_user: str = Depends(get_optional_current_user),
+):
+    """Apply a wizard plan in the background; poll /provision/status for progress."""
+    try:
+        return diskovarr_provision.start_plan(payload.model_dump())
+    except diskovarr_provision.ProvisionError as error:
+        status = 409 if "already in progress" in str(error) else 400
+        raise HTTPException(status_code=status, detail=str(error)) from None
+
+
+@diskovarr_router.post("/provision/validate")
+def validate_provision(
+    payload: ProvisionRequest,
+    current_user: str = Depends(get_optional_current_user),
+):
+    """Dry-run validation of a plan without touching DUMB's config."""
+    try:
+        plan = diskovarr_provision.normalize_plan(payload.model_dump())
+    except diskovarr_provision.ProvisionError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from None
+    return {
+        "ok": True,
+        "provider": plan["debrid"]["provider"],
+        "services": plan["services"],
+        "library_path": plan["library_path"],
+        "riven_env": sorted(diskovarr_provision.riven_env_overrides(plan).keys()),
+    }
+
+
+@diskovarr_router.get("/provision/status")
+def get_provision_status(
+    current_user: str = Depends(get_optional_current_user),
+):
+    """Progress of the current or most recent provisioning run."""
+    return diskovarr_provision.job_status()

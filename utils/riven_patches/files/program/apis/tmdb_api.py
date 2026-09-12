@@ -59,8 +59,18 @@ class TMDBAPI:
         )
         rate_limit_params = get_rate_limit_params(max_calls=50, period=1)
         session = create_service_session(rate_limit_params=rate_limit_params)
-        session.headers.update({"Authorization": f"Bearer {token}"})
+        if self.is_read_access_token(token):
+            session.headers.update({"Authorization": f"Bearer {token}"})
+        else:
+            # A v3 API key (what Diskovarr and most self-hosters have) is sent
+            # as the api_key query parameter instead of a bearer JWT.
+            session.params = {**getattr(session, "params", {}), "api_key": token}
         self.request_handler = TMDBRequestHandler(session)
+
+    @staticmethod
+    def is_read_access_token(value: str) -> bool:
+        """v4 read-access tokens are JWTs; v3 keys are 32 hex characters."""
+        return value.count(".") == 2 and value.startswith("eyJ")
 
     def validate(self) -> bool:
         """Cheap authenticated call to confirm the token works."""

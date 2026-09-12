@@ -82,12 +82,42 @@ def parse_config_keys(config):
         mount_dir = first_instance.get("mount_dir", "")
         mount_name = first_instance.get("mount_name", "")
         config_keys["SYMLINK_RCLONE_PATH"] = f"{mount_dir}/{mount_name}/__all__"
+    else:
+        _apply_decypharr_fallback(config, rclone_instances, key_map, config_keys)
 
     CONFIG_MANAGER.config["riven_backend"]["wait_for_dir"] = config_keys[
         "SYMLINK_RCLONE_PATH"
     ]
 
     return config_keys
+
+
+def _apply_decypharr_fallback(config, rclone_instances, key_map, config_keys):
+    """Riven on top of Decypharr (no Riven-owned rclone/zurg instances).
+
+    Diskovarr's guided setup runs AllDebrid through Decypharr, so Riven has no
+    rclone instance of its own. Take the mount and provider keys from Decypharr
+    instead: its ``__all__`` folder is what Riven symlinks from.
+    """
+    decypharr = config.get("decypharr", {}) or {}
+    if not decypharr.get("enabled"):
+        return
+    mount_root = ""
+    for instance in rclone_instances.values():
+        if instance.get("enabled") and instance.get("decypharr_enabled"):
+            mount_dir = instance.get("mount_dir") or "/mnt/debrid"
+            mount_name = instance.get("mount_name") or "decypharr"
+            mount_root = f"{mount_dir}/{mount_name}"
+            break
+    if not mount_root and str(decypharr.get("mount_type") or "rclone") in ("rclone", "dfs"):
+        mount_root = decypharr.get("mount_path") or "/mnt/debrid/decypharr"
+    if mount_root:
+        config_keys["SYMLINK_RCLONE_PATH"] = f"{mount_root.rstrip('/')}/__all__"
+    for provider, api_key in (decypharr.get("api_keys") or {}).items():
+        normalized = str(provider or "").strip().lower().replace("_", " ")
+        env_key = key_map.get(normalized) or key_map.get(normalized.replace(" ", ""))
+        if env_key and str(api_key or "").strip():
+            config_keys[env_key] = str(api_key).strip()
 
 
 def obfuscate_value(key, value, visible_chars=4):

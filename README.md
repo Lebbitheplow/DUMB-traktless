@@ -107,6 +107,15 @@ DUMB is designed to reduce the glue work that usually comes with multi-service m
 | [Zilean](https://github.com/iPromKnight/zilean)                   | [iPromKnight](https://github.com/iPromKnight)                        | [Docs](https://ipromknight.github.io/zilean/) • [Issues](https://github.com/iPromKnight/zilean/issues)                                         | [Sponsor](https://ko-fi.com/W7W616IBNG)                                                                                                   |
 | [Zurg](https://github.com/debridmediamanager/zurg-testing)        | [yowmamasita](https://github.com/yowmamasita)                        | [Wiki](https://github.com/debridmediamanager/zurg-testing/wiki)                                                                                 | [Sponsor](https://github.com/sponsors/debridmediamanager)                                         |
 
+## 🧭 Diskovarr guided setup
+
+This fork exposes `/diskovarr/provision/*` so [Diskovarr](https://github.com/Lebbitheplow/diskovarr)'s
+Admin → Setup wizard can drive DUMB: it hands over a plan (debrid provider + key,
+which apps to install, Diskovarr's TMDB key and Plex connection) and DUMB
+installs the stack — AllDebrid through Decypharr, Real-Debrid through Zurg —
+wires Riven's content source to Diskovarr's request bridge, and pushes the
+resulting service URLs/keys back into Diskovarr's Connections page.
+
 ## ⚖️ Licensing
 
 DUMB is licensed under [GNU GPLv3](LICENSE). Copyright and license notices for
